@@ -228,7 +228,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	 */
 
 	const getNewNationalInsuranceBreakdown = () => {
-		const taxableAmount = grossIncome - 9500
+		const taxableAmount = Math.max(grossIncome - pensionAmount - 9500, 0)
 		const middle = 40524
 
 		const higherAmount = taxableAmount - middle
