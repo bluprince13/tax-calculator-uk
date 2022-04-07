@@ -115,7 +115,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	 * Pension amount
 	 */
 
-	const pensionAmount: number = ((grossIncome - getTotalAllowances()) / 100) * options.pensionPercentage
+	const pensionAmount: number = (grossIncome / 100) * options.pensionPercentage
 
 	/**
 	 * Returns the total taxable income
