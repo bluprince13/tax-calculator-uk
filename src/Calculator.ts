@@ -9,7 +9,7 @@ import {
 	NationalInsuranceBreakdown
 } from "./Interfaces"
 
-import { getAmountRounded } from "./utils/Rounded"
+import { getAmountRounded } from "./utils/rounded"
 import { TAX_SETTINGS } from "./TaxYears/21-22/Settings"
 
 const Calculator = (grossIncome: number, options: CalculatorOptions) => {
