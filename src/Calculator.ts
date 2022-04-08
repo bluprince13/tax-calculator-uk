@@ -1,6 +1,5 @@
 import {
 	TaxSettings,
-	StudentLoanPlans,
 	CalculatorOptions,
 	TaxRate,
 	IncomeTax,
@@ -20,58 +19,10 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	calculator.options = options
 
 	/**
-	 * Returns the age related contributions
+	 * Returns personal allowance
 	 */
-	const getAgeRelatedContributions = (): number => {
-		if (options.age < 65) {
-			return 0
-		}
-		if (options.age < 75) {
-			return taxSettings.allowance.basic - taxSettings.allowance.age_65_74
-		}
-		return taxSettings.allowance.basic - taxSettings.allowance.age_75_over
-	}
-
-	/**
-	 * Returns the age related taper deductions
-	 */
-	const getAgeRelatedTaperDeductions = (): number => {
-		let incomeMinusTaperThreshold: number = grossIncome - taxSettings.allowance.thresholds.taper
-		if (incomeMinusTaperThreshold < 0) {
-			return 0
-		}
-		let halfIncomeMinusTaperThreshold: number = incomeMinusTaperThreshold / 2
-		let ageRelatedContributions: number = getAgeRelatedContributions()
-		if (halfIncomeMinusTaperThreshold > ageRelatedContributions) {
-			return ageRelatedContributions
-		}
-		return halfIncomeMinusTaperThreshold
-	}
-
-	/**
-	 * Returns the total taper deductions
-	 */
-	const getTaperDeductions = (): number => {
-		let incomeMinusPensionContributions: number = grossIncome - grossIncome - (grossIncome / 100) * 5
-		let incomeMinusPensionMinusTaperThreshold: number =
-			incomeMinusPensionContributions - taxSettings.allowance.thresholds.taper
-		if (incomeMinusPensionMinusTaperThreshold < 0) {
-			return 0
-		}
-		let halfIncomeMinusPensionMinusTaperThreshold: number = incomeMinusPensionMinusTaperThreshold / 2
-		let allowanceAfterAgeAdjust: number = getAllowanceAfterAgeAdjust()
-		if (halfIncomeMinusPensionMinusTaperThreshold > allowanceAfterAgeAdjust) {
-			return allowanceAfterAgeAdjust
-		}
-		return halfIncomeMinusPensionMinusTaperThreshold
-	}
-
-	/**
-	 * Returns personal allowance after adjusting for age
-	 */
-	const getAllowanceAfterAgeAdjust = (): number => {
-		let ageAllowance: number = taxSettings.allowance.basic + getAgeRelatedContributions()
-		return ageAllowance - getAgeRelatedTaperDeductions()
+	const getAllowance = (): number => {
+		return taxSettings.allowance.basic
 	}
 
 	/**
@@ -79,7 +30,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	 */
 	const getPersonalAllowance = (): number => {
 		if (grossIncome <= 100000) {
-			return getAllowanceAfterAgeAdjust() - getTaperDeductions()
+			return getAllowance()
 		} else if (grossIncome > 100000 && grossIncome <= 125000) {
 			return 12500 - (grossIncome - 100000) / 2
 		} else if (grossIncome >= 125001) {
@@ -88,40 +39,23 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	}
 
 	/**
-	 * Returns blind person allowance
-	 */
-	const getBlindAllowance = (): number => {
-		if (options.blind === false) {
-			return 0
-		}
-		return taxSettings.allowance.blind
-	}
-
-	/**
 	 * Returns total tax deductions rounded to 2 decimal places
 	 */
 	const getTotalTaxDeductions = (): number => {
-		let totalTaxDeductions: number =
-			getTotalIncomeTax() + getTotalStudentLoanRepayment() + getTotalYearlyNationalInsuranceWithAgeDeductions()
+		let totalTaxDeductions: number = getTotalIncomeTax() + getTotalYearlyNationalInsurance()
 		return getAmountRounded(totalTaxDeductions)
 	}
 
 	/**
-	 * Returns the total allowances
-	 */
-	const getTotalAllowances = (): number => getPersonalAllowance() + getBlindAllowance()
-
-	/**
 	 * Pension amount
 	 */
-
 	const pensionAmount: number = (grossIncome / 100) * options.pensionPercentage
 
 	/**
 	 * Returns the total taxable income
 	 */
 	const getTotalTaxableIncome = (): number => {
-		let incomeMinusTotalAllowances: number = grossIncome - getTotalAllowances()
+		let incomeMinusTotalAllowances: number = grossIncome - getPersonalAllowance()
 
 		return incomeMinusTotalAllowances - pensionAmount
 	}
@@ -156,11 +90,6 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const getTotalNetPayPerDay = (): number => {
 		let totalNetPayPerYear: number = getTotalNetPayPerYear()
 		return getAmountRounded(totalNetPayPerYear / 365)
-	}
-
-	const getGrossWeekly = (): number => {
-		let grossWeekly: number = grossIncome / 52
-		return getAmountRounded(grossWeekly)
 	}
 
 	/**
@@ -226,7 +155,6 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	/**
 	 * Returns a breakdown for all national insurance using new method for budget 2020/2021
 	 */
-
 	const getNewNationalInsuranceBreakdown = () => {
 		const taxableAmount = Math.max(grossIncome - pensionAmount - 9500, 0)
 		const middle = 40524
@@ -277,91 +205,15 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	}
 
 	/**
-	 * Returns total weekly national insurance rounded to 2 decimal places
-	 */
-	const getTotalWeeklyNationalInsurance = (): number => {
-		let nationalInsuranceBreakdown: NationalInsuranceBreakdown = getNewNationalInsuranceBreakdown()
-		let totalWeeklyNationalInsurance: number =
-			nationalInsuranceBreakdown.rate_0.tax +
-			nationalInsuranceBreakdown.rate_12.tax +
-			nationalInsuranceBreakdown.rate_2.tax
-		return getAmountRounded(totalWeeklyNationalInsurance)
-	}
-
-	/**
 	 * Returns total yearly national insurance
 	 */
 	const getTotalYearlyNationalInsurance = (): number => {
-		let totalWeeklyNationalInsurance: number = getTotalWeeklyNationalInsurance()
-		return getAmountRounded(totalWeeklyNationalInsurance)
-	}
-
-	/**
-	 * Returns national insurance age related deductions
-	 */
-	const getNationalInsuranceAgeRelatedDeductions = (): number => {
-		let totalWeeklingNationalInsurance: number = getTotalWeeklyNationalInsurance()
-		if (options.age >= taxSettings.nationalInsurance.pensionAge) {
-			return getTotalYearlyNationalInsurance()
-		}
-		return 0
-	}
-
-	/**
-	 * Returns total yearly national insurance with age deductions
-	 */
-	const getTotalYearlyNationalInsuranceWithAgeDeductions = (): number => {
-		let totalNationalInsurance: number = getTotalYearlyNationalInsurance() - getNationalInsuranceAgeRelatedDeductions()
-		return getAmountRounded(totalNationalInsurance)
-	}
-
-	/**
-	 * Returns student loan replayment plan threshold
-	 */
-	const getStudentLoanRepaymentThreshold = (): number => {
-		if (options.studentLoanPlan === StudentLoanPlans.PLAN_1) {
-			return taxSettings.studentLoan.plan_1.threshold
-		}
-		if (options.studentLoanPlan === StudentLoanPlans.PLAN_2) {
-			return taxSettings.studentLoan.plan_2.threshold
-		}
-		return 0
-	}
-
-	/**
-	 * Returns student loan replayment plan rate
-	 */
-	const getStudentLoanRepaymentRate = (): number => {
-		if (options.studentLoanPlan === StudentLoanPlans.PLAN_1) {
-			return taxSettings.studentLoan.plan_1.rate
-		}
-		if (options.studentLoanPlan === StudentLoanPlans.PLAN_2) {
-			return taxSettings.studentLoan.plan_2.rate
-		}
-		return 0
-	}
-
-	/**
-	 * Returns income above student loan threshold
-	 */
-	const getIncomeAboveStudentLoanThreshold = (): number => {
-		let studentLoanThreshold: number = getStudentLoanRepaymentThreshold()
-		let incomeMinusThreshold: number = grossIncome - studentLoanThreshold
-		if (incomeMinusThreshold < 0) {
-			return 0
-		}
-		return incomeMinusThreshold
-	}
-
-	/**
-	 * Returns total student loan replayment for year rounded to 2 decimal places
-	 */
-	const getTotalStudentLoanRepayment = (): number => {
-		if (options.studentLoanPlan === StudentLoanPlans.NO_PLAN) {
-			return 0
-		}
-		let studentLoanRepaymentTotal: number = getIncomeAboveStudentLoanThreshold() * getStudentLoanRepaymentRate()
-		return getAmountRounded(studentLoanRepaymentTotal)
+		let nationalInsuranceBreakdown: NationalInsuranceBreakdown = getNewNationalInsuranceBreakdown()
+		let totalYearlyNationalInsurance: number =
+			nationalInsuranceBreakdown.rate_0.tax +
+			nationalInsuranceBreakdown.rate_12.tax +
+			nationalInsuranceBreakdown.rate_2.tax
+		return getAmountRounded(totalYearlyNationalInsurance)
 	}
 
 	calculator.getTaxBreakdown = () => {
@@ -374,18 +226,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 			},
 			personalAllowance: getPersonalAllowance(),
 			paye: getIncomeTaxBreakdown(),
-			nationalInsurance: getNewNationalInsuranceBreakdown(),
-			studentLoan: {
-				plan:
-					options.studentLoanPlan === StudentLoanPlans.PLAN_1
-						? "PLAN_1"
-						: options.studentLoanPlan === StudentLoanPlans.PLAN_2
-						? "PLAN_2"
-						: "NO_PLAN",
-				threshold: getStudentLoanRepaymentThreshold(),
-				rate: getStudentLoanRepaymentRate(),
-				repayment: getTotalStudentLoanRepayment()
-			}
+			nationalInsurance: getNewNationalInsuranceBreakdown()
 		}
 	}
 
