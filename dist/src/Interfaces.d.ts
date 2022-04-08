@@ -42,9 +42,6 @@ export interface StudentLoanPlanSetting {
     readonly rate: number;
 }
 export interface CalculatorOptions {
-    age: number;
-    studentLoanPlan: StudentLoanPlans;
-    blind: boolean;
     pensionPercentage: number;
 }
 export declare const enum StudentLoanPlans {

@@ -29,11 +29,12 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	 * Returns the allowed personal allowance
 	 */
 	const getPersonalAllowance = (): number => {
-		if (grossIncome <= 100000) {
+		const grossIncomeAfterSalarySacrifice = getGrossIncomeAfterSalarySacrifice()
+		if (grossIncomeAfterSalarySacrifice <= 100000) {
 			return getAllowance()
-		} else if (grossIncome > 100000 && grossIncome <= 125000) {
-			return 12500 - (grossIncome - 100000) / 2
-		} else if (grossIncome >= 125001) {
+		} else if (grossIncomeAfterSalarySacrifice > 100000 && grossIncomeAfterSalarySacrifice <= 125000) {
+			return 12500 - (grossIncomeAfterSalarySacrifice - 100000) / 2
+		} else if (grossIncomeAfterSalarySacrifice >= 125001) {
 			return 0
 		}
 	}
@@ -52,19 +53,24 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const pensionAmount: number = (grossIncome / 100) * options.pensionPercentage
 
 	/**
+	 * Gross income after salary sacrifice
+	 */
+	const getGrossIncomeAfterSalarySacrifice = (): number => {
+		return grossIncome - pensionAmount
+	}
+
+	/**
 	 * Returns the total taxable income
 	 */
 	const getTotalTaxableIncome = (): number => {
-		let incomeMinusTotalAllowances: number = grossIncome - getPersonalAllowance()
-
-		return incomeMinusTotalAllowances - pensionAmount
+		return getGrossIncomeAfterSalarySacrifice() - getPersonalAllowance()
 	}
 
 	/**
 	 * Returns total net pay per year rounded to 2 decimal places
 	 */
 	const getTotalNetPayPerYear = (): number => {
-		let totalNetPay: number = grossIncome - getTotalTaxDeductions() - pensionAmount
+		let totalNetPay: number = getGrossIncomeAfterSalarySacrifice() - getTotalTaxDeductions()
 		return getAmountRounded(totalNetPay)
 	}
 
@@ -156,7 +162,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	 * Returns a breakdown for all national insurance using new method for budget 2020/2021
 	 */
 	const getNewNationalInsuranceBreakdown = () => {
-		const taxableAmount = Math.max(grossIncome - pensionAmount - 9500, 0)
+		const taxableAmount = Math.max(getGrossIncomeAfterSalarySacrifice() - 9500, 0)
 		const middle = 40524
 
 		const higherAmount = taxableAmount - middle

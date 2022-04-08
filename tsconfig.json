@@ -9,7 +9,5 @@
     "declaration": true,
     "lib": ["es2015", "es2017", "dom"]
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
