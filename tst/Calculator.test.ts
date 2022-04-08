@@ -5,9 +5,6 @@ describe("Calculator", () => {
   it("returns correct tax breadkown when income is more than personal allowance", () => {
     // Verified at https://www.thesalarycalculator.co.uk/salary.php#modal-close
     const income = 200000
-    const options = {
-      pensionPercentage: 0
-    }
     const expected = {
       netIncome: {
         yearly: 117177.4,
@@ -26,19 +23,20 @@ describe("Calculator", () => {
         rate_0: { tax: 0 },
         rate_12: { tax: 4862.88 },
         rate_2: { tax: 2999.52 }
-      }
+      },
+      pension: 0,
+      effectiveTaxRate: 41.41
     }
 
-    const taxBreakdown = Calculator(income, options).getTaxBreakdown()
+    const taxBreakdown = Calculator(income, {
+      pensionPercentage: 0
+    }).getTaxBreakdown()
 
     expect(taxBreakdown).toEqual(expected)
   })
 
   it("return 0 paye tax when income is equal to personal allowance", () => {
     const income = TAX_SETTINGS.allowance.basic
-    const options = {
-      pensionPercentage: 0
-    }
     const expectedPaye = {
       rate_0: { tax: 0, carry: 0 },
       rate_20: { tax: 0, carry: 0 },
@@ -46,19 +44,24 @@ describe("Calculator", () => {
       rate_45: { tax: 0, carry: 0 }
     }
 
-    const paye = Calculator(income, options).getTaxBreakdown().paye
+    const paye = Calculator(income, {
+      pensionPercentage: 0
+    }).getTaxBreakdown().paye
 
     expect(paye).toEqual(expectedPaye)
   })
 
-  it("returns zero income when pensionPercentage is 100", () => {
-    const options = {
+  it("returns full pension and zero income when pensionPercentage is 100", () => {
+    const income = 150000
+
+    const taxBreakdown = Calculator(income, {
       pensionPercentage: 100
-    }
+    }).getTaxBreakdown()
 
-    const netIncome = Calculator(150000, options).getTaxBreakdown().netIncome.yearly
-
+    const netIncome = taxBreakdown.netIncome.yearly
+    const pension = taxBreakdown.pension
     expect(netIncome).toBe(0)
+    expect(pension).toBe(income)
   })
 
   it("calculates tax on gross income after salary sacrifice", () => {
