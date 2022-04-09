@@ -2,15 +2,19 @@
 
 This package give you an income tax breakdown based on a yearly salary.
 
+Forked from https://github.com/eagleeyejack/tax-calculator-uk. I have removed
+corrections to account for age, blindness etc. to keep the calculations more
+simple.
+
 ## Installation
 
 You can install the package via npm or yarn.
 
-```
+```bash
 npm install tax-calculator-uk
 ```
 
-```
+```bash
 yarn add tax-calculator-uk
 ```
 
@@ -18,54 +22,12 @@ yarn add tax-calculator-uk
 
 You will need to import the package into your project and create an options object with the following options.
 
-```javascript
+````javascript
 import TaxCalculator from "tax-calculator-uk"
 
 const options = {
-	age: 26,
-	studentLoanPlan: 1,
-	blind: false,
-	pensionPercentage: 5
+  pensionPercentage: 5
 }
-
-const incomeTax = TaxCalculator(60000, options)
-```
-
-## Options
-
-### age - Number
-
-This options reprents the age of the person you are calculating the income tax form.
-
-### studentLoanPlan - Number
-
-This option represents the student loan plan of the person you are calculating the income tax for.
-
-```
-0 - No plan
-1 - Plan 1
-2 - Plan 2
-```
-
-**Plan 1**
-
-- English and Welsh students who started before 1 September 2012
-- all Scottish and Northern Irish students
-- You pay back 9% of your income over the minimum amount of **£19,895**.
-
-**Plan 2**
-
-- Plan 2 is for English and Welsh students who started on or after 1 September 2012.
-- You pay back 9% of your income over the minimum amount of **£27,295**.
-
-**No plan**
-
-- No repayments will be made as you have no student loan
-
-### blind - Boolean
-
-This options represents whether or not the person is blind. Extra tax allowances are allocated for blind individuals.
-
 ### pensionPercentage - Number
 
 This option represents the percentage of their yearly salary the person is paying into a pension.
@@ -80,57 +42,34 @@ import TaxCalculator from "tax-calculator-uk"
 const incomeTax = incomeTax.getTaxBreakdown()
 
 console.log(incomeTax)
-```
+````
 
 Returns
 
 ```json
 {
-	"netIncome": {
-		"yearly": 38108.03,
-		"monthly": 3175.67,
-		"weekly": 732.85,
-		"daily": 104.41
-	},
-	"personalAllowance": 12500,
-	"paye": {
-		"rate_0": {
-			"tax": 0,
-			"carry": 45125
-		},
-		"rate_20": {
-			"tax": 7500,
-			"carry": 7625
-		},
-		"rate_40": {
-			"tax": 3050,
-			"carry": 0
-		},
-		"rate_45": {
-			"tax": 0,
-			"carry": 0
-		}
-	},
-	"nationalInsurance": {
-		"rate_0": {
-			"tax": 0
-		},
-		"rate_12": {
-			"tax": 4862.88
-		},
-		"rate_2": {
-			"tax": 199.52
-		}
-	},
-	"studentLoan": {
-		"plan": "PLAN_1",
-		"threshold": 17775,
-		"rate": 0.09,
-		"repayment": 3800.25
-	}
+  "netIncome": {
+    "yearly": 117177.4,
+    "monthly": 9764.78,
+    "weekly": 2253.41,
+    "daily": 321.03
+  },
+  "personalAllowance": 0,
+  "paye": {
+    "rate_0": { "tax": 0, "carry": 200000 },
+    "rate_20": { "tax": 7539.8, "carry": 162301 },
+    "rate_40": { "tax": 44920.4, "carry": 50000 },
+    "rate_45": { "tax": 22500, "carry": 0 }
+  },
+  "nationalInsurance": {
+    "rate_0": { "tax": 0 },
+    "rate_12": { "tax": 4862.88 },
+    "rate_2": { "tax": 2999.52 }
+  },
+  "pension": 0,
+  "effectiveTaxRate": 41.41
 }
 ```
 
-󠁧󠁢󠁮󠁩󠁲󠁿
-
+󠁧󠁢󠁮
 🚧 The figures are only meant to be used as a rough estimation, happy to accept forks to improve accuracy of figures. 🚧
